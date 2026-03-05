@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><title>Book Slot</title><link rel="stylesheet" href="/web/styles.css"></head>
+<body>
+  <div class="card center">
+    <h2>Book a Slot</h2>
+
+    <label>Slot</label>
+    <select id="slot">
+      <option value="1">S1</option>
+      <option value="2">S2</option>
+      <option value="3">S3</option>
+      <option value="4">S4</option>
+    </select>
+
+    <label>Start (Dhaka time)</label>
+    <input id="start" type="datetime-local">
+
+    <label>End (Dhaka time)</label>
+    <input id="end" type="datetime-local">
+
+    <button class="btn" id="bookBtn">Request booking</button>
+
+    <hr>
+    <h3>My Bookings</h3>
+    <div id="list" class="muted"></div>
+
+    <p><a href="/">Back</a></p>
+    <div id="msg" class="muted"></div>
+  </div>
+
+  <script src="/web/app.js"></script>
+  <script>
+    // preselect slot from query ?slot=2
+    const params = new URLSearchParams(window.location.search);
+    const s = params.get("slot");
+    if(s) $("slot").value = s;
+
+    async function loadMine(){
+      try{
+        const items = await myBookings();
+        $("list").innerHTML = items.map(b => `
+          <div class="mini">
+            <b>Slot ${b.slot_id}</b> | ${b.status}
+            <div>${fmtDhaka(b.start_time)} → ${fmtDhaka(b.end_time)}</div>
+          </div>
+        `).join("") || "<div>No bookings yet.</div>";
+      }catch(e){
+        $("list").innerHTML = `<div>Login required to view your bookings.</div>`;
+      }
+    }
+
+    $("bookBtn").onclick = async () => {
+      $("msg").textContent = "";
+      try{
+        const slot_id = parseInt($("slot").value, 10);
+        const start_local = $("start").value;
+        const end_local = $("end").value;
+        if(!start_local || !end_local) throw new Error("Please select start and end time.");
+        await createBooking(slot_id, start_local, end_local);
+        $("msg").textContent = "Booking request sent (PENDING). Wait for admin approval.";
+        await loadMine();
+      }catch(e){
+        $("msg").textContent = e.message;
+      }
+    };
+
+    loadMine();
+  </script>
+</body>
+</html>

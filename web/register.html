@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><title>Register</title><link rel="stylesheet" href="/web/styles.css"></head>
+<body>
+  <div class="card center">
+    <h2>Register</h2>
+    <input id="u" placeholder="Username">
+    <input id="p" placeholder="Password" type="password">
+    <button class="btn" id="btn">Create account</button>
+    <p class="muted">Already have account? <a href="/web/login.html">Login</a></p>
+    <p><a href="/">Back</a></p>
+    <div id="msg" class="muted"></div>
+  </div>
+
+  <script src="/web/app.js"></script>
+  <script>
+    $("btn").onclick = async () => {
+      $("msg").textContent = "";
+      try{
+        await register($("u").value.trim(), $("p").value);
+        $("msg").textContent = "Registered + logged in. Redirecting...";
+        window.location.href = "/";
+      }catch(e){
+        $("msg").textContent = e.message;
+      }
+    };
+  </script>
+</body>
+</html>

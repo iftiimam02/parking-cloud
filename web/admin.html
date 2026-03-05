@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><title>Admin</title><link rel="stylesheet" href="/web/styles.css"></head>
+<body>
+  <div class="card center">
+    <h2>Admin Panel</h2>
+
+    <input id="au" placeholder="Admin username">
+    <input id="ap" placeholder="Admin password" type="password">
+    <button class="btn" id="loadBtn">Load pending bookings</button>
+
+    <div id="msg" class="muted"></div>
+    <div id="pending"></div>
+
+    <p><a href="/">Back</a></p>
+  </div>
+
+  <script src="/web/app.js"></script>
+  <script>
+    async function load(){
+      $("msg").textContent = "";
+      $("pending").innerHTML = "";
+      try{
+        const au = $("au").value.trim();
+        const ap = $("ap").value;
+        const items = await adminListPending(au, ap);
+
+        if(items.length === 0){
+          $("pending").innerHTML = `<p class="muted">No pending bookings.</p>`;
+          return;
+        }
+
+        $("pending").innerHTML = items.map(b => `
+          <div class="mini">
+            <div><b>ID:</b> ${b.id} | <b>Slot:</b> ${b.slot_id} | <b>User:</b> ${b.user_id}</div>
+            <div>${fmtDhaka(b.start_time)} → ${fmtDhaka(b.end_time)}</div>
+            <button class="btn" onclick="approve(${b.id})">Approve</button>
+            <button class="btn danger" onclick="reject(${b.id})">Reject</button>
+          </div>
+        `).join("");
+
+        window.approve = async (id) => {
+          await adminApprove(id, au, ap);
+          await load();
+        };
+        window.reject = async (id) => {
+          await adminReject(id, au, ap);
+          await load();
+        };
+
+      }catch(e){
+        $("msg").textContent = e.message;
+      }
+    }
+
+    $("loadBtn").onclick = load;
+  </script>
+</body>
+</html>

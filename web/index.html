@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parking Dashboard</title>
+  <link rel="stylesheet" href="/web/styles.css">
+</head>
+<body>
+  <div class="container">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>Smart Parking (4 Slots)</h1>
+          <div class="sub">Times shown in Asia/Dhaka • Live updates every 3 seconds</div>
+        </div>
+      </div>
+
+      <div class="right">
+        <a class="btn" href="/web/login.html">Login</a>
+        <a class="btn" href="/web/register.html">Register</a>
+        <a class="btn primary" href="/web/booking.html">Book</a>
+        <a class="btn" href="/web/admin.html">Admin</a>
+        <button class="btn danger" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <div class="grid" id="slots"></div>
+
+    <div class="footer">Smart Parking Cloud • FastAPI + PostgreSQL</div>
+  </div>
+
+  <script src="/web/app.js"></script>
+  <script>
+    const slotsDiv = document.getElementById("slots");
+
+    function badge(state){
+      const s = String(state || "").toUpperCase();
+      if(s==="FREE") return `<span class="badge free"><span class="bDot"></span>FREE</span>`;
+      if(s==="PENDING") return `<span class="badge pending"><span class="bDot"></span>PENDING</span>`;
+      if(s==="RESERVED") return `<span class="badge reserved"><span class="bDot"></span>RESERVED</span>`;
+      if(s==="OCCUPIED") return `<span class="badge occupied"><span class="bDot"></span>OCCUPIED</span>`;
+      return `<span class="badge"><span class="bDot"></span>${s}</span>`;
+    }
+
+    function sensorText(occupied){
+      return occupied ? "occupied" : "free";
+    }
+
+    async function refresh(){
+      try{
+        const slots = await loadSlots();
+
+        slotsDiv.innerHTML = slots.map(s => `
+          <div class="card slotCard">
+            <div class="slotHead">
+              <div class="slotTitle">${s.name}</div>
+              ${badge(s.effective_state)}
+            </div>
+
+            <div class="slotBody">
+              <div class="row">
+                <div class="label">Sensor</div>
+                <div class="value">${sensorText(s.sensor_occupied)}</div>
+              </div>
+
+              <div class="row">
+                <div class="label">Updated</div>
+                <div class="value">${fmtDhaka(s.updated_at)}</div>
+              </div>
+            </div>
+
+            <a class="btn primary slotBtn" href="/web/booking.html?slot=${s.id}">Book this slot</a>
+          </div>
+        `).join("");
+      }catch(e){
+        slotsDiv.innerHTML = `<div class="card slotCard"><b>Error:</b> ${e.message}</div>`;
+      }
+    }
+
+    document.getElementById("logoutBtn").onclick = () => {
+      clearToken();
+      alert("Logged out");
+      location.reload();
+    };
+
+    refresh();
+    setInterval(refresh, 3000);
+  </script>
+</body>
+</html>
