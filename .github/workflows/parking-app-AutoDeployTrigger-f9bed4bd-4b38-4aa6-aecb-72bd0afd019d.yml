@@ -23,23 +23,20 @@ jobs:
           tenant-id: ${{ secrets.PARKINGAPP_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.PARKINGAPP_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and Deploy to Azure Container Apps
+      - name: Build and Deploy
         uses: azure/container-apps-deploy-action@v2
         with:
           appSourcePath: ${{ github.workspace }}
           dockerfilePath: Dockerfile
 
-          # ACR (Container Registry) login
           registryUrl: ${{ secrets.PARKINGAPP_REGISTRY_SERVER }}
           registryUsername: ${{ secrets.PARKINGAPP_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.PARKINGAPP_REGISTRY_PASSWORD }}
 
-          # Container App info
           containerAppName: parking-app
           resourceGroup: garirakho_rrg
           ingress: external
           targetPort: 8000
 
-          # Image names
           imageToBuild: ${{ secrets.PARKINGAPP_REGISTRY_SERVER }}/parking-app:${{ github.sha }}
           imageToDeploy: ${{ secrets.PARKINGAPP_REGISTRY_SERVER }}/parking-app:${{ github.sha }}
